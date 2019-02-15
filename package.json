@@ -27,11 +27,13 @@
   "homepage": "https://github.com/darkartur/use-rxjs#readme",
   "peerDependencies": {
     "react": ">=16.8",
+    "react-dom": ">16.8",
     "rxjs": ">=6"
   },
   "devDependencies": {
     "@types/react": "^16.8.2",
     "react": "^16.8.1",
+    "react-dom": "^16.8.1",
     "rxjs": "^6.4.0",
     "typescript": "^3.3.3"
   },

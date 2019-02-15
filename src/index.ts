@@ -1,31 +1,49 @@
 import * as React from "react";
-import { Observable, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import useForceUpdate from "use-force-update";
+import { takeUntil } from "rxjs/operators";
 
 type ObservableSelector<T> = Observable<T> | (() => Observable<T>);
+
+interface RefValue<T> {
+  unsubscribe$: Subject<unknown>;
+  value$: BehaviorSubject<T | null>;
+}
 
 export default function useRxJs<T>(
   observableSelector: ObservableSelector<T>
 ): T | null {
+  const ref = React.useRef<RefValue<T> | null>(null);
   const forceUpdate = useForceUpdate();
-  const observerRef = React.useRef<Observable<T> | null>(null);
-  const subscriptionRef = React.useRef<Subscription | null>(null);
-  const valueRef = React.useRef<T | null>(null);
 
-  if (observerRef.current === null) {
-    const value$ =
+  if (ref.current === null) {
+    const unsubscribe$ = new Subject<unknown>();
+    const value$ = new BehaviorSubject<T | null>(null);
+    const observable$ =
       typeof observableSelector === "function"
         ? observableSelector()
         : observableSelector;
 
-    const subscription = value$.subscribe(nextValue => {
-      valueRef.current = nextValue;
-      forceUpdate();
-    });
+    observable$
+      .pipe(takeUntil(unsubscribe$))
+      .subscribe(value => value$.next(value));
 
-    observerRef.current = value$;
-    subscriptionRef.current = subscription;
+    ref.current = {
+      unsubscribe$,
+      value$
+    };
   }
 
-  return valueRef.current;
+  React.useEffect(() => {
+    const { unsubscribe$, value$ } = ref.current as RefValue<T>;
+
+    value$.pipe(takeUntil(unsubscribe$)).subscribe(forceUpdate);
+
+    return () => {
+      unsubscribe$.next();
+      unsubscribe$.complete();
+    };
+  }, []);
+
+  return (ref.current as RefValue<T>).value$.getValue();
 }
