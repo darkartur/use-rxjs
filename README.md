@@ -1,6 +1,6 @@
 # useRxJs
 
-`useRxJs` is a React Hook to read values from RxJs `Observable`
+`useRxJs` is a React Hook to read values from RxJs `Observable`. Compatible with SSR (server side rendering)
 
 [![version](https://img.shields.io/npm/v/use-rxjs.svg)](https://www.npmjs.com/package/use-rxjs)
 
