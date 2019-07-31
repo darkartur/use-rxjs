@@ -1,5 +1,6 @@
 import * as React from "react";
 import { mount, configure } from "enzyme";
+import { act } from "react-dom/test-utils";
 import * as Adapter from "enzyme-adapter-react-16";
 import useRxJs from "./index";
 import { BehaviorSubject } from "rxjs";
@@ -35,5 +36,24 @@ describe("useRxJs", () => {
     mount(<Component />);
 
     expect(actualValue!).toBe(expectedValue);
+  });
+
+  test("should grab BehaviorSubject updates", () => {
+    const subject$ = new BehaviorSubject(1);
+    let actualValue: number;
+
+    function Component() {
+      actualValue = useRxJs(subject$);
+      return <div />;
+    }
+
+    mount(<Component />);
+    expect(actualValue!).toBe(1);
+
+    act(() => subject$.next(2));
+    expect(actualValue!).toBe(2);
+
+    act(() => subject$.next(3));
+    expect(actualValue!).toBe(3);
   });
 });
