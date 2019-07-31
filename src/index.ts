@@ -41,7 +41,15 @@ function useRxJs<T>(
   React.useEffect(() => {
     const { unsubscribe$, value$ } = ref.current as RefValue<T>;
 
-    value$.pipe(takeUntil(unsubscribe$)).subscribe(forceUpdate);
+    let isInitialUpdate = true;
+
+    value$.pipe(takeUntil(unsubscribe$)).subscribe(() => {
+      if (!isInitialUpdate) {
+        forceUpdate();
+      }
+    });
+
+    isInitialUpdate = false;
 
     return () => {
       unsubscribe$.next();
