@@ -21,4 +21,19 @@ describe("useRxJs", () => {
 
     expect(renderCount).toBe(1);
   });
+
+  test("should grab initial value from BehaviorSubject", () => {
+    const expectedValue = "test";
+    const subject$ = new BehaviorSubject(expectedValue);
+    let actualValue: string;
+
+    function Component() {
+      actualValue = useRxJs(subject$);
+      return <div />;
+    }
+
+    mount(<Component />);
+
+    expect(actualValue!).toBe(expectedValue);
+  });
 });
