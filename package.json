@@ -27,7 +27,6 @@
   "homepage": "https://github.com/darkartur/use-rxjs#readme",
   "peerDependencies": {
     "react": ">=16.8",
-    "react-dom": ">16.8",
     "rxjs": ">=6"
   },
   "devDependencies": {
