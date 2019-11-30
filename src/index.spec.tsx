@@ -56,4 +56,23 @@ describe("useRxJs", () => {
     act(() => subject$.next(3));
     expect(actualValue!).toBe(3);
   });
+
+  test("should change value source when observable changes", () => {
+    const subject1$ = new BehaviorSubject(1);
+    const subject2$ = new BehaviorSubject(2);
+    let actualValue: number;
+
+    function Component({ subject$ }: { subject$: BehaviorSubject<number> }) {
+      actualValue = useRxJs(subject$);
+      return <div />;
+    }
+
+    const wrapper = mount(<Component subject$={subject1$} />);
+
+    wrapper.setProps({
+      subject$: subject2$
+    });
+
+    expect(actualValue!).toBe(2);
+  });
 });
