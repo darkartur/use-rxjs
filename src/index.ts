@@ -10,11 +10,11 @@ interface RefValue<T> {
   value$: BehaviorSubject<T | null>;
 }
 
-function useRxJs<T>(observableSelector: Selector<T, BehaviorSubject<T>>): T;
+export default function useRxJs<T>(observableSelector: Selector<T, BehaviorSubject<T>>): T;
 
-function useRxJs<T>(observableSelector: Selector<T, Observable<T>>): T | null;
+export default function useRxJs<T>(observableSelector: Selector<T, Observable<T>>): T | null;
 
-function useRxJs<T>(
+export default function useRxJs<T>(
   observableSelector: Selector<T, BehaviorSubject<T> | Observable<T>>
 ): T | null {
   const ref = React.useRef<RefValue<T> | null>(null);
@@ -59,5 +59,3 @@ function useRxJs<T>(
 
   return (ref.current as RefValue<T>).value$.getValue();
 }
-
-export default useRxJs;
