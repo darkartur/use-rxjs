@@ -10,13 +10,9 @@ interface RefValue<T> {
   value$: BehaviorSubject<T | null>;
 }
 
-function useRxJs<T>(
-  observableSelector: Selector<T, BehaviorSubject<T>>
-): T;
+function useRxJs<T>(observableSelector: Selector<T, BehaviorSubject<T>>): T;
 
-function useRxJs<T>(
-  observableSelector: Selector<T, Observable<T>>
-): T | null;
+function useRxJs<T>(observableSelector: Selector<T, Observable<T>>): T | null;
 
 function useRxJs<T>(
   observableSelector: Selector<T, BehaviorSubject<T> | Observable<T>>
@@ -94,3 +90,5 @@ export function useInstance<T>(initializer: InstanceFactory<T>): T {
 }
 
 export default useRxJs;
+
+export { useRxJs };
