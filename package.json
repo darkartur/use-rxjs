@@ -1,6 +1,6 @@
 {
   "name": "use-rxjs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "React Hook to read values from RxJs Observable",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
