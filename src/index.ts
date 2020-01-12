@@ -1,14 +1,9 @@
 import * as React from "react";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import useForceUpdate from "use-force-update";
-import { switchMap, takeUntil } from "rxjs/operators";
+import { useEffect, useRef } from "react";
 
 type Selector<T, O extends Observable<T>> = O | (() => O);
-
-interface RefValue<T> {
-  unsubscribe$: Subject<unknown>;
-  value$: BehaviorSubject<T | null>;
-}
 
 function useRxJs<T>(observableSelector: Selector<T, BehaviorSubject<T>>): T;
 
@@ -17,64 +12,36 @@ function useRxJs<T>(observableSelector: Selector<T, Observable<T>>): T | null;
 function useRxJs<T>(
   observableSelector: Selector<T, BehaviorSubject<T> | Observable<T>>
 ): T | null {
-  const ref = React.useRef<RefValue<T> | null>(null);
+  const value$ = useObservableSelector(observableSelector);
+  const valueRef = useRef<T | null>(null);
   const forceUpdate = useForceUpdate();
+  const isFirstRenderRef = useIsFirstRenderRef();
 
-  const externalValue$ =
-    typeof observableSelector === "function"
-      ? useInstance(observableSelector)
-      : observableSelector;
+  const subscribe = () =>
+    value$.subscribe(value => {
+      valueRef.current = value;
+      if (!isFirstRenderRef.current) {
+        forceUpdate();
+      }
+    });
 
-  const external$ = useInstance(() => new BehaviorSubject(externalValue$));
+  const initialSub = isFirstRenderRef.current && subscribe();
 
-  if (ref.current === null) {
-    const unsubscribe$ = new Subject<unknown>();
-    const value$ = new BehaviorSubject<T | null>(null);
+  useEffect(() => {
+    const sub = initialSub || subscribe();
 
-    external$
-      .pipe(
-        switchMap(externalValue$ => externalValue$!),
-        takeUntil(unsubscribe$)
-      )
-      .subscribe(value => value$.next(value));
+    return () => sub.unsubscribe();
+  }, [value$]);
 
-    ref.current = {
-      unsubscribe$,
-      value$
-    };
-  }
+  return valueRef.current;
+}
 
-  React.useEffect(() => {
-    if (externalValue$ !== external$.value) {
-      external$.next(externalValue$);
-    }
-  });
-
-  React.useEffect(() => {
-    const { unsubscribe$ } = ref.current as RefValue<T>;
-
-    let isInitialUpdate = true;
-
-    external$
-      .pipe(
-        switchMap(externalValue$ => externalValue$),
-        takeUntil(unsubscribe$)
-      )
-      .subscribe(() => {
-        if (!isInitialUpdate) {
-          forceUpdate();
-        }
-      });
-
-    isInitialUpdate = false;
-
-    return () => {
-      unsubscribe$.next();
-      unsubscribe$.complete();
-    };
-  }, []);
-
-  return (ref.current as RefValue<T>).value$.getValue();
+function useObservableSelector<T>(
+  observableSelector: Selector<T, BehaviorSubject<T> | Observable<T>>
+) {
+  return typeof observableSelector === "function"
+    ? useInstance(observableSelector)
+    : observableSelector;
 }
 
 type InstanceFactory<T> = () => T;
@@ -87,6 +54,16 @@ export function useInstance<T>(initializer: InstanceFactory<T>): T {
   }
 
   return instanceRef.current;
+}
+
+function useIsFirstRenderRef() {
+  const ref = React.useRef(true);
+
+  useEffect(() => {
+    ref.current = false;
+  }, []);
+
+  return ref;
 }
 
 export default useRxJs;

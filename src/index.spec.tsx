@@ -3,7 +3,7 @@ import { mount, configure } from "enzyme";
 import { act } from "react-dom/test-utils";
 import * as Adapter from "enzyme-adapter-react-16";
 import useRxJs from "./index";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 
 configure({ adapter: new Adapter() });
 
@@ -74,5 +74,23 @@ describe("useRxJs", () => {
     });
 
     expect(actualValue!).toBe(2);
+  });
+
+  test("should subscribe only once", () => {
+    // let next: () => void;
+    let subscribeCount = 0;
+    const value$ = new Observable<string>(observer => {
+      subscribeCount++;
+      observer.next("test");
+      // next = () => observer.next('test');
+    });
+
+    function Component() {
+      useRxJs(value$);
+      return <div />;
+    }
+
+    mount(<Component />);
+    expect(subscribeCount).toBe(1);
   });
 });
